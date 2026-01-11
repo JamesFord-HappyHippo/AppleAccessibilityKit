@@ -1,12 +1,15 @@
 # AppleAccessibilityKit
 
-A Swift package for reading macOS application content via the Accessibility API. Extract text, UI elements, and semantic context from any application - 100x faster than OCR with perfect accuracy.
+A Swift package for reading AND interacting with macOS applications via the Accessibility API. Extract text, UI elements, and semantic context from any application - 100x faster than OCR with perfect accuracy. Now with full automation support.
 
 ## Features
 
 - **Universal Application Reading** - Read content from any macOS app
-- **Specialized Readers** - Built-in support for Calendar, Mail, and IDEs
+- **UI Automation** - Click buttons, type text, navigate menus, scroll
+- **Specialized Readers** - Calendar, Mail, IDEs, Browsers, Terminal, Notes, Finder
 - **IDE Support** - Xcode, Unity, Godot, VS Code, Android Studio, and more
+- **Browser Support** - Safari, Chrome, Firefox, Arc, Edge, Brave
+- **Terminal Support** - Terminal.app, iTerm2, Warp, Alacritty, Kitty
 - **LLM-Ready Output** - Get context formatted for AI consumption
 - **Zero Dependencies** - Pure Swift, uses only Apple frameworks
 
@@ -22,7 +25,7 @@ A Swift package for reading macOS application content via the Accessibility API.
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/JamesFord-HappyHippo/AppleAccessibilityKit.git", from: "1.0.0")
+    .package(url: "https://github.com/JamesFord-HappyHippo/AppleAccessibilityKit.git", from: "1.1.0")
 ]
 ```
 
@@ -45,15 +48,107 @@ let windows = await AppleAccessibilityKit.read(bundleId: "com.apple.Safari")
 let context = await AppleAccessibilityKit.llmContext()
 ```
 
+### UI Automation (NEW in v1.1.0)
+
+```swift
+// Click a button by title
+await AppleAccessibilityKit.actions.clickButton(title: "Save")
+
+// Type text
+AppleAccessibilityKit.actions.typeText("Hello World")
+
+// Keyboard shortcuts
+AppleAccessibilityKit.actions.pressKey(.s, modifiers: [.command])  // Cmd+S
+
+// Navigate menus
+await AppleAccessibilityKit.actions.selectMenuItem(path: ["File", "Save As..."])
+
+// Scroll
+AppleAccessibilityKit.actions.scrollDown(amount: 100)
+```
+
+### Browser Reading (NEW in v1.1.0)
+
+```swift
+// Get all tabs from Chrome
+let tabs = await AppleAccessibilityKit.browser.tabs(browser: .chrome)
+
+// Get current URL
+if let url = await AppleAccessibilityKit.browser.currentURL() {
+    print("Current page: \(url)")
+}
+
+// Get page content
+if let content = await AppleAccessibilityKit.browser.pageContent() {
+    print(content)
+}
+
+// Detect frontmost browser
+if let browser = AppleAccessibilityKit.browser.detectFrontmostBrowser() {
+    print("Using: \(browser.displayName)")
+}
+```
+
+### Terminal Reading (NEW in v1.1.0)
+
+```swift
+// Read terminal output
+if let output = await AppleAccessibilityKit.terminal.output() {
+    print(output)
+}
+
+// Check for errors
+if await AppleAccessibilityKit.terminal.hasError() {
+    let errors = await AppleAccessibilityKit.terminal.errors()
+    for error in errors {
+        print("Error: \(error)")
+    }
+}
+
+// Get last command
+if let cmd = await AppleAccessibilityKit.terminal.lastCommand() {
+    print("Last command: \(cmd)")
+}
+
+// Check if process is running
+let running = await AppleAccessibilityKit.terminal.isProcessRunning()
+```
+
+### Notes Reading (NEW in v1.1.0)
+
+```swift
+// Get current note
+if let note = await AppleAccessibilityKit.notes.currentNote() {
+    print(note.plainText)
+}
+
+// List visible notes
+let notes = await AppleAccessibilityKit.notes.notesList()
+
+// Get folders
+let folders = await AppleAccessibilityKit.notes.folders()
+```
+
+### Finder Reading (NEW in v1.1.0)
+
+```swift
+// Get selected files
+let selected = await AppleAccessibilityKit.finder.selectedItems()
+
+// Get current path
+if let path = await AppleAccessibilityKit.finder.currentPath() {
+    print("In: \(path)")
+}
+
+// Get visible items
+let items = await AppleAccessibilityKit.finder.visibleItems()
+```
+
 ### Calendar Reading
 
 ```swift
 // Get visible calendar events
 let events = await AppleAccessibilityKit.calendar.visibleEvents()
-
-for event in events {
-    print(event.summary)
-}
 
 // Check if event is a meeting
 if AppleAccessibilityKit.calendar.isMeeting(event) {
@@ -87,9 +182,6 @@ if case .success(let windows) = await AppleAccessibilityKit.ide.read(ide: .xcode
 
 // Get compiler errors
 let errors = await AppleAccessibilityKit.ide.compilerErrors(ide: .xcode)
-for error in errors {
-    print(error.summary)
-}
 
 // Get current file being edited
 if let file = await AppleAccessibilityKit.ide.currentFile(ide: .unity) {
@@ -113,14 +205,12 @@ if !AppleAccessibilityKit.hasPermission() {
 ### Text Extraction Utilities
 
 ```swift
-import AppleAccessibilityKit
-
 let text = "Meeting at 2:30 PM, join at https://zoom.us/j/123"
 
 // Extract URLs
 let urls = TextExtraction.extractURLs(from: text)
 
-// Extract meeting links specifically
+// Extract meeting links
 let meetingLinks = TextExtraction.extractMeetingURLs(from: text)
 
 // Extract times
@@ -130,7 +220,9 @@ let times = TextExtraction.extractTimes(from: text)
 let errors = TextExtraction.extractErrorLocations(from: "/path/file.swift:42:10: error: msg")
 ```
 
-## Supported IDEs
+## Supported Applications
+
+### IDEs
 
 | IDE | Bundle ID | Notes |
 |-----|-----------|-------|
@@ -142,26 +234,52 @@ let errors = TextExtraction.extractErrorLocations(from: "/path/file.swift:42:10:
 | IntelliJ IDEA | com.jetbrains.intellij | Full support |
 | JetBrains Fleet | com.jetbrains.fleet | Full support |
 
+### Browsers
+
+| Browser | Bundle ID |
+|---------|-----------|
+| Safari | com.apple.Safari |
+| Chrome | com.google.Chrome |
+| Firefox | org.mozilla.firefox |
+| Edge | com.microsoft.edgemac |
+| Arc | company.thebrowser.Browser |
+| Brave | com.brave.Browser |
+
+### Terminals
+
+| Terminal | Bundle ID |
+|----------|-----------|
+| Terminal | com.apple.Terminal |
+| iTerm2 | com.googlecode.iterm2 |
+| Warp | dev.warp.Warp-Stable |
+| Alacritty | org.alacritty |
+| Kitty | net.kovidgoyal.kitty |
+
 ## Architecture
 
 ```
 AppleAccessibilityKit/
 ├── Core/
 │   ├── AccessibilityElement.swift      # Data structures
-│   └── AccessibilityTreeWalker.swift   # Low-level AXUIElement API
+│   ├── AccessibilityTreeWalker.swift   # Low-level AXUIElement API
+│   └── ActionPerformer.swift           # UI automation (click, type, etc.)
 ├── Readers/
 │   ├── ApplicationReader.swift         # Generic application reading
-│   ├── CalendarReader.swift            # Calendar.app support
-│   ├── MailReader.swift                # Mail.app support
-│   └── IDEReader.swift                 # IDE support
+│   ├── BrowserReader.swift             # Safari, Chrome, Firefox, etc.
+│   ├── CalendarReader.swift            # Calendar.app
+│   ├── FinderReader.swift              # Finder
+│   ├── IDEReader.swift                 # Xcode, Unity, Godot, etc.
+│   ├── MailReader.swift                # Mail.app
+│   ├── NotesReader.swift               # Notes.app
+│   └── TerminalReader.swift            # Terminal, iTerm, Warp
 └── Utilities/
-    ├── BundleIdentifiers.swift         # Known app bundle IDs
-    └── TextExtraction.swift            # Text parsing utilities
+    ├── BundleIdentifiers.swift         # 79+ known app bundle IDs
+    └── TextExtraction.swift            # URL, email, time parsing
 ```
 
 ## Performance
 
-The Accessibility API is **100x faster than OCR** because it reads the actual UI element data rather than performing image recognition:
+The Accessibility API is **100x faster than OCR** because it reads the actual UI element data:
 
 | Method | Speed | Accuracy | Background Windows |
 |--------|-------|----------|-------------------|
@@ -182,3 +300,20 @@ MIT License - See LICENSE file for details.
 ## Credits
 
 Extracted from [Harvey Decision System](https://github.com/JamesFord-HappyHippo/EquilateralAgents-Personal) by Equilateral AI (Pareidolia LLC).
+
+## Changelog
+
+### v1.1.0
+- Added ActionPerformer for UI automation
+- Added BrowserReader (Safari, Chrome, Firefox, Arc, Edge, Brave)
+- Added TerminalReader (Terminal, iTerm, Warp, Alacritty, Kitty)
+- Added NotesReader (Apple Notes)
+- Added FinderReader
+- Fixed Sendable conformance warnings
+
+### v1.0.0
+- Initial release
+- Core accessibility tree walking
+- Calendar, Mail, IDE readers
+- Text extraction utilities
+- 79 known bundle identifiers
