@@ -59,6 +59,9 @@ public struct AppleAccessibilityKit {
     /// Action performer (click, type, etc.)
     public static var actions: ActionPerformer { ActionPerformer() }
 
+    /// Photos.app reader (time correction, travel logs)
+    public static var photos: PhotosReader { PhotosReader() }
+
     // MARK: - Permissions
 
     /// Check if accessibility permission is granted
