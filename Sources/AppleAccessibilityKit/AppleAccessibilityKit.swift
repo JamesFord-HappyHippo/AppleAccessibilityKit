@@ -62,6 +62,12 @@ public struct AppleAccessibilityKit {
     /// Photos.app reader (time correction, travel logs)
     public static var photos: PhotosReader { PhotosReader() }
 
+    /// Microsoft Teams reader
+    public static var teams: TeamsReader { TeamsReader() }
+
+    /// Microsoft Outlook reader
+    public static var outlook: OutlookReader { OutlookReader() }
+
     // MARK: - Permissions
 
     /// Check if accessibility permission is granted
