@@ -44,6 +44,21 @@ public struct AppleAccessibilityKit {
     /// IDE reader (Xcode, Unity, Godot, etc.)
     public static var ide: IDEReader { IDEReader() }
 
+    /// Browser reader (Safari, Chrome, Firefox, etc.)
+    public static var browser: BrowserReader { BrowserReader() }
+
+    /// Terminal reader (Terminal, iTerm, Warp, etc.)
+    public static var terminal: TerminalReader { TerminalReader() }
+
+    /// Apple Notes reader
+    public static var notes: NotesReader { NotesReader() }
+
+    /// Finder reader
+    public static var finder: FinderReader { FinderReader() }
+
+    /// Action performer (click, type, etc.)
+    public static var actions: ActionPerformer { ActionPerformer() }
+
     // MARK: - Permissions
 
     /// Check if accessibility permission is granted
